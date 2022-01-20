@@ -42,10 +42,10 @@ class Cell:
         color = Color.LIGHTBLUE if self.selected else Color.WHITE
         pygame.draw.rect(surface, color, pygame.Rect(self.x, self.y, self.w, self.h))
 
-        font_color = Color.BLACK
+        font_color = Color.BLUE
 
         if self.given:
-            font_color = Color.BLUE
+            font_color = Color.BLACK
         elif not self.correct:
             font_color = Color.RED
 
