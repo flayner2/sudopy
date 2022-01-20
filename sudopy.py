@@ -63,6 +63,9 @@ class Cell:
     def set_value(self, value: int):
         self.value = value
 
+    def get_value(self) -> int:
+        return self.value
+
     def erase(self):
         self.value = 0
 
@@ -71,6 +74,12 @@ class Cell:
 
     def is_given(self) -> bool:
         return self.given
+
+    def set_correct(self):
+        self.correct = True
+
+    def is_correct(self) -> bool:
+        return self.correct
 
     def __eq__(self, other: "Cell") -> bool:
         return self.x == other.x and self.y == other.y
@@ -92,23 +101,34 @@ def select_cell(cell: Cell, grid: list[Cell]) -> None | Cell:
     return to_return
 
 
-def check_correctness(cell: Cell, grid: list[Cell]):
+def check_correctness(cell: Cell, grid: list[Cell], solution: list[int]):
     cell_index = grid.index(cell)
+
+    if solution[cell_index] == cell.get_value():
+        cell.set_correct()
 
 
 def handle_value(
-    cell: Cell, valid_keys: dict, key_pressed: int, grid: list[Cell]
+    cell: Cell,
+    valid_keys: dict,
+    key_pressed: int,
+    grid: list[Cell],
+    solution: list[int],
 ) -> None:
     cell.set_value(valid_keys[key_pressed])
-    check_correctness(cell, grid)
+    check_correctness(cell, grid, solution)
 
 
 def handle_keypress(
-    cell: Cell | None, valid_keys: dict, key_pressed: int, grid: list[Cell]
+    cell: Cell | None,
+    valid_keys: dict,
+    key_pressed: int,
+    grid: list[Cell],
+    solution: list[int],
 ) -> None:
-    if cell and not cell.is_given():
+    if cell and not (cell.is_given() or cell.is_correct()):
         if key_pressed in valid_keys:
-            handle_value(cell, valid_keys, key_pressed, grid)
+            handle_value(cell, valid_keys, key_pressed, grid, solution)
         elif key_pressed in (pygame.K_DELETE, pygame.K_BACKSPACE):
             cell.erase()
 
@@ -183,6 +203,17 @@ def main() -> None:
         0, 0, 0, 4, 1, 9, 0, 0, 5,
         0, 0, 0, 0, 8, 0, 0, 7, 9
     ]
+    solution = [
+        5, 3, 4, 6, 7, 8, 9, 1, 2,
+        6, 7, 2, 1, 9, 5, 3, 4, 8,
+        1, 9, 8, 3, 4, 2, 5, 6, 7,
+        8, 5, 9, 7, 6, 1, 4, 2, 3,
+        4, 2, 6, 8, 5, 3, 7, 9, 1,
+        7, 1, 3, 9, 2, 4, 8, 5, 6,
+        9, 6, 1, 5, 3, 7, 2, 8, 4,
+        2, 8, 7, 4, 1, 9, 6, 3, 5,
+        3, 4, 5, 2, 8, 6, 1, 7, 9
+    ]
     # fmt: on
 
     lg_spacing = 3
@@ -211,7 +242,7 @@ def main() -> None:
                     selected_cell = select_cell(selected_cell, grid)
 
             if event.type == pygame.KEYDOWN:
-                handle_keypress(selected_cell, NUMBER_KEYS, event.key, grid)
+                handle_keypress(selected_cell, NUMBER_KEYS, event.key, grid, solution)
 
         screen.fill(Color.BLACK)
 
