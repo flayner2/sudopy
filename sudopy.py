@@ -63,9 +63,55 @@ class Cell:
     def set_value(self, value: int):
         self.value = value
 
+    def erase(self):
+        self.value = 0
 
-def generate_grid(state: list[int], size: float, spacing: float) -> list[Cell]:
-    x, y = spacing, spacing
+    def is_selected(self) -> bool:
+        return self.selected
+
+    def is_given(self) -> bool:
+        return self.given
+
+    def __eq__(self, other: "Cell") -> bool:
+        return self.x == other.x and self.y == other.y
+
+
+def select_cell(cell: Cell, grid: list[Cell]) -> None | Cell:
+    to_return = None
+
+    if not cell.is_selected():
+        cell.select()
+        to_return = cell
+    else:
+        cell.deselect()
+
+    for other_cell in grid:
+        if other_cell != cell:
+            other_cell.deselect()
+
+    return to_return
+
+
+def handle_value(cell: Cell, valid_keys: dict, key_pressed: int) -> None:
+    cell.set_value(valid_keys[key_pressed])
+
+
+def handle_keypress(cell: Cell | None, valid_keys: dict, key_pressed: int) -> None:
+    if cell and not cell.is_given():
+        if key_pressed in valid_keys:
+            handle_value(cell, valid_keys, key_pressed)
+        elif key_pressed in (pygame.K_DELETE, pygame.K_BACKSPACE):
+            cell.erase()
+
+
+def generate_grid(
+    state: list[int],
+    size: float,
+    lg_spacing: float,
+    md_spacing: float,
+    sm_spacing: float,
+) -> list[Cell]:
+    x, y = md_spacing, md_spacing
     grid = []
 
     for i in range(9):
@@ -76,10 +122,17 @@ def generate_grid(state: list[int], size: float, spacing: float) -> list[Cell]:
             new_cell = Cell(x, y, size, size, value, False, is_given)
             grid.append(new_cell)
 
-            x += size + spacing
+            if j != 8 and (j + 1) % 3 == 0:
+                x += size + lg_spacing
+            else:
+                x += size + sm_spacing
 
-        y += size + spacing
-        x = spacing
+        if i != 8 and (i + 1) % 3 == 0:
+            y += size + lg_spacing
+        else:
+            y += size + sm_spacing
+
+        x = md_spacing
 
     return grid
 
@@ -87,22 +140,15 @@ def generate_grid(state: list[int], size: float, spacing: float) -> list[Cell]:
 def draw_board(
     surface: pygame.surface.Surface, font: pygame.font.Font, grid: list[Cell]
 ) -> None:
-    # Outlines
-    # pygame.draw.line(surface, Color.BLACK, (0, 0), (W_WIDTH, 0), 2)
-    # pygame.draw.line(
-    # surface, Color.BLACK, (0, W_HEIGHT - 2), (W_WIDTH - 2, W_HEIGHT - 2), 2
-    # )
-    # pygame.draw.line(surface, Color.BLACK, (0, 0), (0, W_HEIGHT), 2)
-    # pygame.draw.line(surface, Color.BLACK, (W_WIDTH - 2, 0), (W_WIDTH - 2, W_HEIGHT), 2)
-
-    # Grid
-
     for cell in grid:
         cell.render(surface, font)
 
 
 def main() -> None:
     pygame.init()
+
+    screen = pygame.display.set_mode(W_SIZE)
+    font = pygame.font.Font(pygame.font.get_default_font(), 50)
 
     NUMBER_KEYS = {
         pygame.K_1: 1,
@@ -130,14 +176,15 @@ def main() -> None:
     ]
     # fmt: on
 
-    cell_scale = 87.9
-    spacing = 1
+    lg_spacing = 3
+    md_spacing = 2
+    sm_spacing = 1
 
-    grid = generate_grid(state, cell_scale, spacing)
+    cell_scale = (W_WIDTH - (lg_spacing * 2) - (md_spacing * 2) - (sm_spacing * 6)) / 9
 
-    screen = pygame.display.set_mode(W_SIZE)
+    grid = generate_grid(state, cell_scale, lg_spacing, md_spacing, sm_spacing)
 
-    font = pygame.font.Font(pygame.font.get_default_font(), 50)
+    selected_cell = None
 
     while True:
         for event in pygame.event.get():
@@ -150,18 +197,12 @@ def main() -> None:
                         math.floor(mouse_x / cell_scale)
                         + math.floor(mouse_y / cell_scale) * 9
                     )
-                    print(selected_index)
 
-                    for cell_index in range(len(grid)):
-                        if cell_index == selected_index:
-                            grid[cell_index].select()
-                        else:
-                            grid[cell_index].deselect()
+                    selected_cell = grid[selected_index]
+                    selected_cell = select_cell(selected_cell, grid)
+
             if event.type == pygame.KEYDOWN:
-                if event.key in NUMBER_KEYS:
-                    for cell in grid:
-                        if cell.selected:
-                            cell.set_value(NUMBER_KEYS[event.key])
+                handle_keypress(selected_cell, NUMBER_KEYS, event.key)
 
         screen.fill(Color.BLACK)
 
