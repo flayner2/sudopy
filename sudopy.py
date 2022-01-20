@@ -38,6 +38,9 @@ class Cell:
         self.given = given
         self.correct = correct
 
+    def __eq__(self, other: "Cell") -> bool:
+        return self.x == other.x and self.y == other.y
+
     def render(self, surface: pygame.surface.Surface, font: pygame.font.Font) -> None:
         color = Color.LIGHTBLUE if self.selected else Color.WHITE
         pygame.draw.rect(surface, color, pygame.Rect(self.x, self.y, self.w, self.h))
@@ -78,11 +81,11 @@ class Cell:
     def set_correct(self):
         self.correct = True
 
+    def set_wrong(self):
+        self.correct = False
+
     def is_correct(self) -> bool:
         return self.correct
-
-    def __eq__(self, other: "Cell") -> bool:
-        return self.x == other.x and self.y == other.y
 
 
 def select_cell(cell: Cell, grid: list[Cell]) -> None | Cell:
@@ -106,6 +109,8 @@ def check_correctness(cell: Cell, grid: list[Cell], solution: list[int]):
 
     if solution[cell_index] == cell.get_value():
         cell.set_correct()
+    else:
+        cell.set_wrong()
 
 
 def handle_value(
