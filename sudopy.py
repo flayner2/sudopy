@@ -92,14 +92,23 @@ def select_cell(cell: Cell, grid: list[Cell]) -> None | Cell:
     return to_return
 
 
-def handle_value(cell: Cell, valid_keys: dict, key_pressed: int) -> None:
+def check_correctness(cell: Cell, grid: list[Cell]):
+    cell_index = grid.index(cell)
+
+
+def handle_value(
+    cell: Cell, valid_keys: dict, key_pressed: int, grid: list[Cell]
+) -> None:
     cell.set_value(valid_keys[key_pressed])
+    check_correctness(cell, grid)
 
 
-def handle_keypress(cell: Cell | None, valid_keys: dict, key_pressed: int) -> None:
+def handle_keypress(
+    cell: Cell | None, valid_keys: dict, key_pressed: int, grid: list[Cell]
+) -> None:
     if cell and not cell.is_given():
         if key_pressed in valid_keys:
-            handle_value(cell, valid_keys, key_pressed)
+            handle_value(cell, valid_keys, key_pressed, grid)
         elif key_pressed in (pygame.K_DELETE, pygame.K_BACKSPACE):
             cell.erase()
 
@@ -202,7 +211,7 @@ def main() -> None:
                     selected_cell = select_cell(selected_cell, grid)
 
             if event.type == pygame.KEYDOWN:
-                handle_keypress(selected_cell, NUMBER_KEYS, event.key)
+                handle_keypress(selected_cell, NUMBER_KEYS, event.key, grid)
 
         screen.fill(Color.BLACK)
 
