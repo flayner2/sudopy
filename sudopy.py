@@ -28,7 +28,7 @@ class Cell:
         selected: bool = False,
         given: bool = False,
         correct: bool = False,
-    ):
+    ) -> None:
         self.x = x
         self.y = y
         self.w = w
@@ -57,19 +57,19 @@ class Cell:
             text_rect = text.get_rect(center=(self.x + self.w / 2, self.y + self.h / 2))
             surface.blit(text, text_rect)
 
-    def select(self):
+    def select(self) -> None:
         self.selected = True
 
-    def deselect(self):
+    def deselect(self) -> None:
         self.selected = False
 
-    def set_value(self, value: int):
+    def set_value(self, value: int) -> None:
         self.value = value
 
     def get_value(self) -> int:
         return self.value
 
-    def erase(self):
+    def erase(self) -> None:
         self.value = 0
 
     def is_selected(self) -> bool:
@@ -78,10 +78,10 @@ class Cell:
     def is_given(self) -> bool:
         return self.given
 
-    def set_correct(self):
+    def set_correct(self) -> None:
         self.correct = True
 
-    def set_wrong(self):
+    def set_wrong(self) -> None:
         self.correct = False
 
     def is_correct(self) -> bool:
@@ -104,7 +104,7 @@ def select_cell(cell: Cell, grid: list[Cell]) -> None | Cell:
     return to_return
 
 
-def check_correctness(cell: Cell, grid: list[Cell], solution: list[int]):
+def check_correctness(cell: Cell, grid: list[Cell], solution: list[int]) -> None:
     cell_index = grid.index(cell)
 
     if solution[cell_index] == cell.get_value():
